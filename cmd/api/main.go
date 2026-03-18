@@ -87,7 +87,7 @@ func main() {
 	gin.SetMode(cfg.GinMode)
 
 	// Initialize router
-	r := router.SetupRouter(db, redisClient, kafkaProducer, logger)
+	r := router.SetupRouter(db, redisClient, kafkaProducer, logger, cfg)
 
 	// Start server
 	srv := &http.Server{
