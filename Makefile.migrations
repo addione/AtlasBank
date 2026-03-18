@@ -1,0 +1,48 @@
+# Migration commands using golang-migrate CLI tool
+# Install: go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+# Database connection string
+DB_URL=postgresql://atlasbank:atlasbank123@localhost:5432/atlasbank?sslmode=disable
+
+# Migrations directory
+MIGRATIONS_DIR=internal/database/migrations
+
+.PHONY: migrate-up migrate-down migrate-create migrate-force migrate-version
+
+# Run all pending migrations
+migrate-up:
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
+
+# Rollback the last migration
+migrate-down:
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down 1
+
+# Rollback all migrations
+migrate-down-all:
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down -all
+
+# Create a new migration file
+# Usage: make migrate-create name=create_new_table
+migrate-create:
+	@if [ -z "$(name)" ]; then \
+		echo "Error: name parameter is required. Usage: make migrate-create name=create_new_table"; \
+		exit 1; \
+	fi
+	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
+
+# Force set migration version (use with caution)
+# Usage: make migrate-force version=1
+migrate-force:
+	@if [ -z "$(version)" ]; then \
+		echo "Error: version parameter is required. Usage: make migrate-force version=1"; \
+		exit 1; \
+	fi
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" force $(version)
+
+# Show current migration version
+migrate-version:
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" version
+
+# Drop everything in the database (use with extreme caution!)
+migrate-drop:
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" drop -f
